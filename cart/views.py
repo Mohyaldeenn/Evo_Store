@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect, HttpResponse
 import uuid
 from .models import Cart, CartItem
 from store.models import Product
@@ -18,12 +18,17 @@ def get_or_create_cart(request) :
     return cart 
 
 def add_to_cart(request, product_id) :
+    if request.method == "POST" :
+        for key, value in request.POST.items() :
+            print(key+"  "+value)
+            
     product = get_object_or_404(Product, id = product_id)
     cart = get_or_create_cart(request)
     cart_item, create = CartItem.objects.get_or_create(product = product , cart = cart)
     if not create :
         cart_item.quantity += 1
     cart_item.save()
+    
     return redirect("cart:cart")
 
 def remove_from_cart(request, item_id) :
