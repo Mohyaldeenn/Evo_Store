@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect, HttpResponse
 import uuid
 from .models import Cart, CartItem
-from store.models import Product
+from store.models import Product, Variation
 
 # Create your views here.
 
@@ -18,18 +18,34 @@ def get_or_create_cart(request) :
     return cart 
 
 def add_to_cart(request, product_id) :
+    product = get_object_or_404(Product, id = product_id)
+    product_variations= []
+    cart = get_or_create_cart(request)
+    
     if request.method == "POST" :
         for key, value in request.POST.items() :
-            print(key+"  "+value)
-            
-    product = get_object_or_404(Product, id = product_id)
-    cart = get_or_create_cart(request)
-    cart_item, create = CartItem.objects.get_or_create(product = product , cart = cart)
-    if not create :
-        cart_item.quantity += 1
-    cart_item.save()
+            print(key + value)
+            try :
+                variation = Variation.objects.get(product= product,variation_category__iexact= key, variation_value= value)
+                
+                product_variations.append(variation)
+                
+            except Variation.DoesNotExist :
+                print("no......")
+                continue  
+    cart_items = CartItem.objects.filter(product = product , cart = cart)
+    for cart_item in cart_items :
+        existing_variations= list(cart_item.variations.all())
+        if existing_variations == product_variations :
+            cart_item.quantity += 1
+            cart_item.save()
+            return redirect("cart:cart")
     
+    cart_item = CartItem.objects.create(cart= cart, product= product)
+    cart_item.variations.set(product_variations)
+    cart_item.save()
     return redirect("cart:cart")
+
 
 def remove_from_cart(request, item_id) :
     cart_item = CartItem.objects.get(id= item_id)

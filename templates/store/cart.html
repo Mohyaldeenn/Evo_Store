@@ -36,7 +36,10 @@
 			<div class="aside"><img src="{{item.product.image.url}}" class="img-sm"></div>
 			<figcaption class="info">
 				<a href="{{item.product.get_absolute_url}}" class="title text-dark">{{item.product.name}}</a>
-				<p class="text-muted small">Matrix: 25 Mpx <br> Brand: Canon</p>
+				<p class="text-muted small">
+					{% for variation in item.variations.all %}
+						{{variation.variation_category | capfirst}} : {{variation.variation_value | capfirst}} <br>
+					{% endfor %}
 			</figcaption>
 		</figure>
 	</td>
@@ -47,9 +50,18 @@
 							<div class="input-group-prepend">
 							<a href="{% url 'cart:decrement_quantity' item.id %}"  class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
 							</div>
+
 							<input type="text" class="form-control"  value="{{item.quantity}}" >
+
 							<div class="input-group-append">
-							<a href="{% url 'cart:add_to_cart' item.product.id %}" class="btn btn-light" type="button" id="button-minus"> <i class="fa fa-plus"></i> </a>
+								<form action="{% url 'cart:add_to_cart' item.product.id %}" method="post">
+									{% csrf_token %}
+									{% for var in item.variations.all %}
+										<input type="hidden" name="{{var.variation_category }}" value= "{{var.variation_value}}">
+									{% endfor %}
+										
+									<button class="btn btn-light" type="submit" id="button-minus"> <i class="fa fa-plus"></i> </button>
+							</form>
 							</div>
 						</div> <!-- input-group.// -->
 					</div> <!-- col.// -->
