@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect, HttpResponse
 import uuid
+from django.contrib.auth.decorators import login_required
 from .models import Cart, CartItem
 from store.models import Product, Variation
 
@@ -31,17 +32,24 @@ def add_to_cart(request, product_id) :
                 product_variations.append(variation)
                 
             except Variation.DoesNotExist :
-                print("no......")
                 continue  
-    cart_items = CartItem.objects.filter(product = product , cart = cart)
+    if request.user.is_authenticated :
+        cart_items = CartItem.objects.filter(user= request.user, product = product)  
+    else :      
+        cart_items = CartItem.objects.filter(product = product , cart = cart)
+        
     for cart_item in cart_items :
         existing_variations= list(cart_item.variations.all())
         if existing_variations == product_variations :
             cart_item.quantity += 1
             cart_item.save()
             return redirect("cart:cart")
-    
-    cart_item = CartItem.objects.create(cart= cart, product= product)
+        
+    if request.user.is_authenticated :
+        cart_item = CartItem.objects.create(user= request.user, product= product)
+    else :
+        cart_item = CartItem.objects.create(cart = cart, product= product)
+        
     cart_item.variations.set(product_variations)
     cart_item.save()
     return redirect("cart:cart")
@@ -60,9 +68,26 @@ def decrement_quantity(request, item_id) :
     return redirect("cart:cart")
 
 def view_cart(request) :
-    cart = get_or_create_cart(request)
-    cart_items = CartItem.objects.filter(cart= cart, is_active= True)
+    if request.user.is_authenticated :
+        cart_items = CartItem.objects.filter(user= request.user, is_active= True)
+    else :
+        cart = get_or_create_cart(request)
+        cart_items = CartItem.objects.filter(cart= cart, is_active= True)
+        
     total = sum(item.sub_total() for item in cart_items)
     tax = (2*total)//100
     context = {"total": total, "cart_items": cart_items, "tax": tax}
     return render(request, "store/cart.html", context)
+
+
+@login_required(login_url= "account:login")
+def checkout(request) :
+    if request.user.is_authenticated :
+        cart_items = CartItem.objects.filter(user= request.user, is_active= True)
+    else :
+        cart = get_or_create_cart(request)
+        cart_items = CartItem.objects.filter(cart= cart, is_active= True)
+    total = sum(item.sub_total() for item in cart_items)
+    tax = (2*total)//100
+    context = {"total": total, "cart_items": cart_items, "tax": tax}
+    return render(request, "store/checkout.html", context)

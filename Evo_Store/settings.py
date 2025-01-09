@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'category.apps.CategoryConfig',
     'users.apps.UsersConfig',
     'cart.apps.CartConfig',
+    'order.apps.OrderConfig',
 ]
 
 MIDDLEWARE = [
@@ -132,6 +133,8 @@ STATIC_ROOT = BASE_DIR /'staticfiles'
 #media files 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

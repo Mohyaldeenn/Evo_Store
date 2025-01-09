@@ -10,7 +10,7 @@ class CustomUserManager(BaseUserManager) :
         if not full_name :
             raise ValueError("You Must Have A Name")
         email = self.normalize_email(email)
-        user = self.model(email =email, full_name=full_name, is_active=True)
+        user = self.model(email =email, full_name=full_name, is_active= False)
         user.set_password(password)
         user.save(using =self._db)
         return user
