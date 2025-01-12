@@ -12,12 +12,12 @@
 <div class="card">
         <div class="card-body">
         <h4 class="card-title mb-4">Billing Address</h4>
-        <form action="" method="post">
+        <form action="{% url 'order:place_order' %}" method="POST">
             {% csrf_token %}
             <div class="form-row">
                 <div class="col form-group">
                     <label for="">Full Name</label>
-                    <input type="text" placeholder= "your full name like in your passport" name="first_name" class="form-control" required>
+                    <input type="text" placeholder= "your full name like in your passport" name="full_name" class="form-control" required>
                 </div>
             </div>
              <div class="form-row">
